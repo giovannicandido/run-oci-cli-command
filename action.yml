@@ -8,7 +8,12 @@ inputs:
     description: >-
       The command and arguments to provide to the "oci" tool. Most commands specify a service, followed by a resource
       type and then an action, e.g. "iam user list --compartment-id <compartment-ocid>"
-    required: true
+    required: false
+  install_only:
+    description: >-
+      (Optional) Only install the OCI CLI and not run any command
+    type: boolean
+    default: false
   query:
     description: >-
       (Optional) JMESPath query [http://jmespath.org/] to run on the response JSON before output.

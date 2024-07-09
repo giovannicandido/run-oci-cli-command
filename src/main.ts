@@ -33,16 +33,6 @@ function isJson(item: string): boolean {
  *
  */
 async function runOciCliCommand(): Promise<void> {
-  if (!fs.existsSync(path.join(os.homedir(), '.oci-cli-installed'))) {
-    core.startGroup('Installing Oracle Cloud Infrastructure CLI')
-    const cli = await exec.getExecOutput('python -m pip install oci-cli')
-
-    if (cli && cli.exitCode == 0) {
-      fs.writeFileSync(path.join(os.homedir(), '.oci-cli-installed'), 'success')
-    }
-    core.endGroup()
-  }
-
   const cliBin = await io.which('oci', true)
   const cliArgs = core
     .getInput('command', { required: true })
@@ -83,9 +73,30 @@ async function runOciCliCommand(): Promise<void> {
   }
 }
 
+async function installCli(): Promise<void> {
+  if (!fs.existsSync(path.join(os.homedir(), '.oci-cli-installed'))) {
+    core.startGroup('Installing Oracle Cloud Infrastructure CLI')
+    const cli = await exec.getExecOutput('python -m pip install oci-cli')
+
+    if (cli && cli.exitCode == 0) {
+      fs.writeFileSync(path.join(os.homedir(), '.oci-cli-installed'), 'success')
+    }
+    core.endGroup()
+  }
+}
+
+async function checkInputOptionAndRun(): Promise<void> {
+  const installOnly = core.getBooleanInput('install_only', { required: false })
+  if (installOnly) {
+    await installCli()
+  } else {
+    await runOciCliCommand()
+  }
+}
+
 /**
  * Requires OCI CLI environment variables to be set
  */
-runOciCliCommand().catch(e => {
+checkInputOptionAndRun().catch(e => {
   if (e instanceof Error) core.setFailed(e.message)
 })
